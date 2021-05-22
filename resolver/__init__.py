@@ -286,9 +286,11 @@ class Provider(resolvelib.AbstractProvider):  # type: ignore
         requirement: packaging.requirements.Requirement,
         candidate: Candidate,
     ) -> bool:
-        if packaging.utils.canonicalize_name(requirement.name) != candidate.name:
-            return False
-        return candidate.version in requirement.specifier
+        return (
+            packaging.utils.canonicalize_name(requirement.name) == candidate.name
+            and requirement.extras <= candidate.extras
+            and candidate.version in requirement.specifier
+        )
 
     def get_dependencies(
         self,
