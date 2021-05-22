@@ -197,6 +197,11 @@ class Candidate():
     def dependencies(self) -> Iterable[packaging.requirements.Requirement]:
         dependencies: Set[packaging.requirements.Requirement] = set()
 
+        if self._extras:
+            dependencies.add(packaging.requirements.Requirement(
+                f'{self.name}=={str(self.version)}'
+            ))
+
         for requirement_str in self.archive.metadata.get_all('Requires-Dist', []):
             requirement = packaging.requirements.Requirement(requirement_str)
 
@@ -206,10 +211,6 @@ class Candidate():
                     # skip on extras as they are never an extra-only req
                     dependencies.add(requirement)
                 continue
-
-            if self._extras:
-                # inject base package as a dependency
-                dependencies.add(packaging.requirements.Requirement(self.name))
 
             for extra in self._extras:
                 if (
