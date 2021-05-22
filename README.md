@@ -8,11 +8,11 @@ A Python dependency resolver.
 
 ### Usage
 
-##### Python library
+#### Python library
 
 See https://github.com/FFY00/python-resolver/blob/main/resolver/__main__.py
 
-##### CLI
+#### Resolver CLI
 
 ```
 $ python -m resolver build
@@ -32,9 +32,9 @@ toml ->
 packaging -> pyparsing
 ```
 
-##### mindeps CLI
+#### `mindeps` CLI
 
-``resolver.mindeps`` will resolve the dependency tree for the minimum supported version.
+`resolver.mindeps` will resolve the dependency tree for the minimum supported version.
 This is useful when you want for eg. test your software against the minimum version of the
 dependencies that it claims to support.
 
