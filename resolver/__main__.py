@@ -3,6 +3,8 @@
 import os
 import sys
 
+from typing import Set
+
 import packaging.requirements
 import resolvelib
 
@@ -19,9 +21,12 @@ def task() -> None:
         for arg in sys.argv[1:]
     )
 
+    seen: Set[str] = set()
     print('--- Pinned Candidates ---')
     for key, candidate in result.mapping.items():
-        print(f'{key.name}: {candidate.name} {candidate.version}')
+        if key.name not in seen:
+            print(f'{key.name}: {candidate.name} {candidate.version}')
+            seen.add(key.name)
 
     print('\n--- Dependency Graph ---')
     for key in result.graph:
