@@ -1,4 +1,4 @@
-# python-resolve
+# python-resolver
 
 A Python dependency resolver.
 
