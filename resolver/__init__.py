@@ -310,7 +310,7 @@ class Provider(resolvelib.AbstractProvider):  # type: ignore
             ]
         ]],
     ) -> resolvelib.providers.Preference:
-        return sum(1 for _ in candidates[identifier])
+        return 0
 
     def find_matches(
         self,
@@ -328,7 +328,7 @@ class Provider(resolvelib.AbstractProvider):  # type: ignore
                 candidate.version in r.specifier for r in our_requirements
             )
         )
-        return self.sort_candidates(candidates)
+        return functools.partial(self._validated_candidates_iter, identifier, self.sort_candidates(candidates))
 
     def _get_candidates(self, name: str, extras: Optional[Set[str]] = None) -> Iterator[Candidate]:
         url = mousebender.simple.create_project_url(self._package_index_url, name)
@@ -354,12 +354,12 @@ class Provider(resolvelib.AbstractProvider):  # type: ignore
             except packaging.version.InvalidVersion:
                 continue
 
-            # XXX: Expensive! But currently required because resolvelib does not allow use to postone the validation
-            # https://github.com/sarugaku/resolvelib/issues/79
-            if not candidate.is_valid(self._supported_tags):
-                continue
-
             yield candidate
+
+    def _validated_candidates_iter(self, name, candidates: Iterable[Candidate]) -> Iterator[Candidate]:
+        for candidate in candidates:
+            if candidate.is_valid(self._supported_tags):
+                yield candidate
 
     def sort_candidates(self, candidates: Iterable[Candidate]) -> Sequence[Candidate]:
         '''Sort the candidates. Used by find_matches.'''
