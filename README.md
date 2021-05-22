@@ -35,7 +35,7 @@ packaging -> pyparsing
 #### `mindeps` CLI
 
 `resolver.mindeps` will resolve the dependency tree for the minimum supported version.
-This is useful when you want for eg. test your software against the minimum version of the
+This is useful when you want to for eg. test your software against the minimum version of the
 dependencies that it claims to support.
 
 It can work on projects directly, or on requirement strings, like the normal CLI.
