@@ -47,7 +47,7 @@ Unlike the normal CLI, the output will be a list of requirement strings that pin
 For resolving the current project, the `python-resolver[mindeps]` extra needs to be installed.
 
 ```
-$ python -m resolve.mindeps
+$ python -m resolver.mindeps
 mousebender==2.0.0
 resolvelib==0.7.0
 attrs==19.3.0
@@ -71,7 +71,7 @@ setuptools==0.9.8
 ```
 
 ```
-$ python -m resolve.mindeps build==0.3.0
+$ python -m resolver.mindeps build==0.3.0
 build==0.3.0
 pep517==0.9.1
 toml==0.9.6
