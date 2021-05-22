@@ -31,7 +31,7 @@ def task() -> None:
     print('\n--- Dependency Graph ---')
     for key in result.graph:
         targets = ', '.join(str(child) for child in result.graph.iter_children(key))
-        print(f'{key} -> {targets}')
+        print('{} -> {}'.format(key or '(root)', targets))
 
 
 def main() -> None:

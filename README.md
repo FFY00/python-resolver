@@ -25,7 +25,7 @@ pyparsing: pyparsing 2.4.7
 
 --- Dependency Graph ---
 pep517 -> toml
-None -> build
+(root) -> build
 build -> pep517, toml, packaging
 pyparsing ->
 toml ->
