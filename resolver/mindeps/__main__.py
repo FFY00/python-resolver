@@ -154,6 +154,8 @@ def main() -> None:
         task()
     except KeyboardInterrupt:
         print('Exiting...')
+    except Exception as e:
+        _error(str(e))
 
 
 def entrypoint() -> None:
