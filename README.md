@@ -48,26 +48,14 @@ For resolving the current project, the `python-resolver[mindeps]` extra needs to
 
 ```
 $ python -m resolver.mindeps
-mousebender==2.0.0
 resolvelib==0.7.0
+importlib-metadata==3.2.0
+mousebender==2.0.0
+zipp==0.5.0
 attrs==19.3.0
 packaging==20.3
-build==0.0.1
-toml==0.9.6
-pep517==0.1
-pytoml==0.1.21
-importlib-metadata==3.2.0
-pytest-cov==2.0.0
-coverage==5.2
-zipp==0.5.0
 pyparsing==2.0.3
-pytest==4.0.0
-six==1.10.0
-atomicwrites==1.0.0
-pluggy==0.7.1
-py==1.5.1
-more-itertools==4.0.0
-setuptools==0.9.8
+six==1.5.0
 ```
 
 ```
