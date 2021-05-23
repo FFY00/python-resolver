@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 
+import argparse
 import io
-import itertools
 import os
 import os.path
 import pathlib
@@ -9,7 +9,7 @@ import sys
 import tempfile
 import zipfile
 
-from typing import Dict, Iterator, List, Sequence, Set
+from typing import Iterable, Sequence, Set
 
 import packaging
 import resolvelib
@@ -22,6 +22,30 @@ try:
     import importlib.metadata as importlib_metadata
 except ImportError:
     import importlib_metadata  # type: ignore
+
+
+_MARKER_KEYS = (
+    'implementation_version',
+    'platform_python_implementation',
+    'implementation_name',
+    'python_full_version',
+    'platform_release',
+    'platform_version',
+    'platform_machine',
+    'platform_system',
+    'python_version',
+    'sys_platform',
+    'os_name',
+    'python_implementation',
+)
+
+
+def _error(msg: str, code: int = 1) -> None:  # pragma: no cover
+    prefix = 'ERROR'
+    if sys.stdout.isatty():
+        prefix = '\33[91m' + prefix + '\33[0m'
+    print('{} {}'.format(prefix, msg))
+    exit(code)
 
 
 def _project_requirements() -> Sequence[str]:
@@ -50,12 +74,44 @@ def _project_requirements() -> Sequence[str]:
     return requirements
 
 
-def _marker_matrix(options: Dict[str, List[str]]) -> Iterator[Dict[str, str]]:
-    for value in itertools.product(*options.values()):
-        yield dict(zip(options, value))
+def main_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'requirements',
+        type=str,
+        nargs='*',
+        help='requirement strings',
+    )
+    parser.add_argument(
+        '--extras',
+        '-e',
+        type=str,
+        default=argparse.SUPPRESS,
+        nargs='*',
+        help='project extras',
+    )
+    marker_args = parser.add_argument_group(
+        title='marker arguments',
+        description='values used to evaluate the project requirements',
+    )
+    for key in _MARKER_KEYS:
+        marker_args.add_argument(
+            f'--{key}',
+            type=str,
+            default=argparse.SUPPRESS,
+        )
+    return parser
 
 
 def task() -> None:
+    parser = main_parser()
+    args = parser.parse_args()
+
+    if args.requirements:
+        for bad_arg in _MARKER_KEYS + ('extras',):
+            if bad_arg in args:
+                _error(f'Option --{bad_arg} not supported when specifying bare requirements')
+
     package_resolver = resolvelib.Resolver(
         resolver.mindeps.MinimumDependencyProvider(
             '/tmp/resolver-cache' if os.name == 'posix' else None
@@ -63,24 +119,27 @@ def task() -> None:
         resolvelib.BaseReporter(),
     )
 
-    requirements = sys.argv[1:] if sys.argv[1:] else _project_requirements()
+    requirements: Iterable[packaging.requirements.Requirement] = map(
+        packaging.requirements.Requirement,
+        args.requirements or _project_requirements(),
+    )
 
-    options = {
-        'extra': [''],
+    extras = set(vars(args).get('extras', {})) | {''}
+    marker_env = {
+        k: v for k, v in vars(args).items()
+        if k in _MARKER_KEYS
     }
-    target_requirements: Set[packaging.requirements.Requirement] = set()
-    for requirement in map(packaging.requirements.Requirement, requirements):
-        if not requirement.marker:
-            target_requirements.add(requirement)
-            continue
-        if any(
-            requirement.marker.evaluate(env)
-            for env in _marker_matrix(options)
-        ):
-            target_requirements.add(requirement)
-            continue
 
-    result = package_resolver.resolve(target_requirements)
+    resolver_requirements: Set[packaging.requirements.Requirement] = set()
+    for requirement in requirements:
+        for extra in extras:
+            if not requirement.marker:
+                resolver_requirements.add(requirement)
+            elif requirement.marker.evaluate(marker_env | {'extra': extra}):
+                requirement.marker = None
+                resolver_requirements.add(requirement)
+
+    result = package_resolver.resolve(resolver_requirements)
 
     pinned = {
         candidate.name: candidate.version
