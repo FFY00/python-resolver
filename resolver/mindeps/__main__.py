@@ -59,9 +59,12 @@ def task() -> None:
 
     requirements = sys.argv[1:] if sys.argv[1:] else _project_requirements()
 
+    extras = {''}
     result = package_resolver.resolve(
-        packaging.requirements.Requirement(arg)
-        for arg in requirements
+        requirement
+        for extra in extras
+        for requirement in map(packaging.requirements.Requirement, requirements)
+        if not requirement.marker or requirement.marker.evaluate({'extra': extra})
     )
 
     pinned = {
