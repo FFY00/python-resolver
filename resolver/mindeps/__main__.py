@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 import io
+import itertools
 import os
 import os.path
 import pathlib
@@ -8,7 +9,7 @@ import sys
 import tempfile
 import zipfile
 
-from typing import Sequence
+from typing import Dict, Iterator, List, Sequence, Set
 
 import packaging
 import resolvelib
@@ -49,6 +50,11 @@ def _project_requirements() -> Sequence[str]:
     return requirements
 
 
+def _marker_matrix(options: Dict[str, List[str]]) -> Iterator[Dict[str, str]]:
+    for value in itertools.product(*options.values()):
+        yield dict(zip(options, value))
+
+
 def task() -> None:
     package_resolver = resolvelib.Resolver(
         resolver.mindeps.MinimumDependencyProvider(
@@ -59,13 +65,22 @@ def task() -> None:
 
     requirements = sys.argv[1:] if sys.argv[1:] else _project_requirements()
 
-    extras = {''}
-    result = package_resolver.resolve(
-        requirement
-        for extra in extras
-        for requirement in map(packaging.requirements.Requirement, requirements)
-        if not requirement.marker or requirement.marker.evaluate({'extra': extra})
-    )
+    options = {
+        'extra': [''],
+    }
+    target_requirements: Set[packaging.requirements.Requirement] = set()
+    for requirement in map(packaging.requirements.Requirement, requirements):
+        if not requirement.marker:
+            target_requirements.add(requirement)
+            continue
+        if any(
+            requirement.marker.evaluate(env)
+            for env in _marker_matrix(options)
+        ):
+            target_requirements.add(requirement)
+            continue
+
+    result = package_resolver.resolve(target_requirements)
 
     pinned = {
         candidate.name: candidate.version
