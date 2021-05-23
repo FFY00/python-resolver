@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 
 import argparse
-import io
 import os
 import os.path
 import pathlib
@@ -14,8 +13,8 @@ from typing import Iterable, Sequence, Set
 import packaging
 import resolvelib
 
-import resolver
 import resolver.__main__
+import resolver.archive
 import resolver.mindeps
 
 
@@ -53,7 +52,6 @@ def _project_requirements() -> Sequence[str]:
     import build
     import pep517.wrappers
 
-    old_stdout, sys.stdout = sys.stdout, io.StringIO()
     builder = build.ProjectBuilder('.', runner=pep517.wrappers.quiet_subprocess_runner)
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
@@ -70,7 +68,6 @@ def _project_requirements() -> Sequence[str]:
 
         requirements = importlib_metadata.PathDistribution(path).metadata.get_all('Requires-Dist', [])
 
-    sys.stdout = old_stdout
     assert isinstance(requirements, list)
     return requirements
 
