@@ -58,7 +58,7 @@ def _project_requirements() -> Sequence[str]:
             path = pathlib.Path(builder.prepare('wheel', tmpdir))
         except TypeError:
             wheel = builder.build('wheel', tmpdir)
-            match = resolver._WHEEL_NAME_REGEX.match(os.path.basename(wheel))
+            match = resolver.archive._WHEEL_NAME_REGEX.match(os.path.basename(wheel))
             if not match:
                 raise ValueError('Invalid wheel')
             path = zipfile.Path(wheel) / '{}-{}.dist-info'.format(
