@@ -83,6 +83,12 @@ def main_parser() -> argparse.ArgumentParser:
         help='requirement strings',
     )
     parser.add_argument(
+        '--write',
+        '-w',
+        type=str,
+        help='write to file',
+    )
+    parser.add_argument(
         '--extras',
         '-e',
         type=str,
@@ -103,7 +109,7 @@ def main_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def task() -> None:
+def task() -> None:  # noqa: C901
     parser = main_parser()
     args = parser.parse_args()
 
@@ -147,6 +153,14 @@ def task() -> None:
     }
     for name, version in pinned.items():
         print(f'{name}=={str(version)}')
+
+    if args.write:
+        path = os.path.abspath(args.write)
+        if os.path.dirname(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(args.write, 'w') as f:
+            for name, version in pinned.items():
+                f.write(f'{name}=={str(version)}\n')
 
 
 def main() -> None:
