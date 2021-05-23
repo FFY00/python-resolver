@@ -15,6 +15,7 @@ import packaging
 import resolvelib
 
 import resolver
+import resolver.__main__
 import resolver.mindeps
 
 
@@ -83,6 +84,12 @@ def main_parser() -> argparse.ArgumentParser:
         help='requirement strings',
     )
     parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help='enable verbose output',
+    )
+    parser.add_argument(
         '--write',
         '-w',
         type=str,
@@ -118,11 +125,12 @@ def task() -> None:  # noqa: C901
             if bad_arg in args:
                 _error(f'Option --{bad_arg} not supported when specifying bare requirements')
 
+    reporter = resolver.__main__.VerboseReporter if args.verbose else resolvelib.BaseReporter
     package_resolver = resolvelib.Resolver(
         resolver.mindeps.MinimumDependencyProvider(
             '/tmp/resolver-cache' if os.name == 'posix' else None
         ),
-        resolvelib.BaseReporter(),
+        reporter(),
     )
 
     requirements: Iterable[packaging.requirements.Requirement] = map(
@@ -146,6 +154,9 @@ def task() -> None:  # noqa: C901
                 resolver_requirements.add(requirement)
 
     result = package_resolver.resolve(resolver_requirements)
+
+    if args.verbose:
+        print('\n--- Solution ---')
 
     pinned = {
         candidate.name: candidate.version

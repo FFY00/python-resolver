@@ -3,12 +3,35 @@
 import os
 import sys
 
-from typing import Set
+from typing import Any, Set
 
 import packaging.requirements
 import resolvelib
 
 import resolver
+
+
+class VerboseReporter(resolvelib.BaseReporter):
+    def starting(self) -> None:
+        print('starting()')
+
+    def starting_round(self, index: int) -> None:
+        print(f'starting_round({index})')
+
+    def ending_round(self, index: int, state: Any) -> None:
+        print(f'ending_round({index}, ...)')
+
+    def ending(self, state: Any) -> None:
+        print('ending(...)')
+
+    def adding_requirement(self, requirement: Any, parent: Any) -> None:
+        print(f'  adding_requirement({requirement}, {parent})')
+
+    def backtracking(self, candidate: Any) -> None:
+        print(f'  backtracking({candidate})')
+
+    def pinning(self, candidate: Any) -> None:
+        print(f'  pinning({candidate})')
 
 
 def task() -> None:
