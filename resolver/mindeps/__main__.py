@@ -11,6 +11,7 @@ import zipfile
 from typing import Iterable, Sequence, Set
 
 import packaging
+import packaging.markers
 import resolvelib
 
 import resolver.__main__
@@ -132,10 +133,14 @@ def task() -> None:  # noqa: C901
     )
 
     extras = set(vars(args).get('extras', {})) | {''}
-    marker_env = {
-        k: v for k, v in vars(args).items()
-        if k in _MARKER_KEYS
-    }
+    if any(arg in _MARKER_KEYS for arg in vars(args)):
+        marker_env = {
+            k: v for k, v in vars(args).items()
+            if k in _MARKER_KEYS
+        }
+    else:
+        marker_env = packaging.markers.default_environment()
+        print(marker_env)
 
     resolver_requirements: Set[packaging.requirements.Requirement] = set()
     for requirement in requirements:
