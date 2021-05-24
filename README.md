@@ -10,7 +10,17 @@ A Python dependency resolver.
 
 #### Python library
 
-See https://github.com/FFY00/python-resolver/blob/main/resolver/__main__.py
+```python
+import resolvelib
+import resolver
+
+
+resolver = resolvelib.Resolver(
+    resolver.Provider(),
+    resolvelib.BaseReporter(),
+)
+resolver.resolve('trampolim==0.0.2')
+```
 
 #### Resolver CLI
 
