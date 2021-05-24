@@ -163,12 +163,7 @@ def task() -> None:  # noqa: C901
         print(f'{name}=={str(version)}')
 
     if args.write:
-        path = os.path.abspath(args.write)
-        if os.path.dirname(path):
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(args.write, 'w') as f:
-            for name, version in pinned.items():
-                f.write(f'{name}=={str(version)}\n')
+        resolver.__main__.write_pinned(args.write, pinned)
 
 
 def main() -> None:

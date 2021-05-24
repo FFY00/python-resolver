@@ -3,9 +3,10 @@
 import argparse
 import os
 
-from typing import Any, Set
+from typing import Any, Dict, Set
 
 import packaging.requirements
+import packaging.version
 import resolvelib
 
 import resolver
@@ -48,7 +49,22 @@ def main_parser() -> argparse.ArgumentParser:
         action='store_true',
         help='enable verbose output',
     )
+    parser.add_argument(
+        '--write',
+        '-w',
+        type=str,
+        help='write to file',
+    )
     return parser
+
+
+def write_pinned(path: str, pinned: Dict[str, packaging.version.Version]) -> None:
+    path = os.path.abspath(path)
+    if os.path.dirname(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w') as f:
+        for name, version in pinned.items():
+            f.write(f'{name}=={str(version)}\n')
 
 
 def task() -> None:
@@ -76,6 +92,13 @@ def task() -> None:
     for key in result.graph:
         targets = ', '.join(str(child) for child in result.graph.iter_children(key))
         print('{} -> {}'.format(key or '(root)', targets))
+
+    pinned = {
+        candidate.name: candidate.version
+        for candidate in result.mapping.values()
+    }
+    if args.write:
+        write_pinned(args.write, pinned)
 
 
 def main() -> None:
