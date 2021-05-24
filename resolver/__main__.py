@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 
+import argparse
 import os
-import sys
 
 from typing import Any, Set
 
@@ -34,18 +34,39 @@ class VerboseReporter(resolvelib.BaseReporter):
         print(f'  pinning({candidate})')
 
 
+def main_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'requirements',
+        type=str,
+        nargs='+',
+        help='requirement strings',
+    )
+    parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help='enable verbose output',
+    )
+    return parser
+
+
 def task() -> None:
+    parser = main_parser()
+    args = parser.parse_args()
+
+    reporter = VerboseReporter if args.verbose else resolvelib.BaseReporter
     package_resolver = resolvelib.Resolver(
         resolver.Provider('/tmp/resolver-cache' if os.name == 'posix' else None),
-        resolvelib.BaseReporter(),
+        reporter(),
     )
     result = package_resolver.resolve(
         packaging.requirements.Requirement(arg)
-        for arg in sys.argv[1:]
+        for arg in args.requirements
     )
 
     seen: Set[str] = set()
-    print('--- Pinned Candidates ---')
+    print('\n--- Pinned Candidates ---')
     for key, candidate in result.mapping.items():
         if key.name not in seen:
             print(f'{key.name}: {candidate.name} {candidate.version}')
