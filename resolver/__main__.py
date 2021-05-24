@@ -116,7 +116,7 @@ def main() -> None:
     except KeyboardInterrupt:
         print('Exiting...')
     except Exception as e:
-        resolver.__main__._error(str(e))
+        _error(str(e))
 
 
 def entrypoint() -> None:
