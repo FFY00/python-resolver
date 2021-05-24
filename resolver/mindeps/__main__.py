@@ -140,7 +140,6 @@ def task() -> None:  # noqa: C901
         }
     else:
         marker_env = packaging.markers.default_environment()
-        print(marker_env)
 
     resolver_requirements: Set[packaging.requirements.Requirement] = set()
     for requirement in requirements:
