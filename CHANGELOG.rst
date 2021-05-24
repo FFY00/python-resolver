@@ -3,8 +3,8 @@ Changelog
 +++++++++
 
 
-0.0.1.1 (24-5-2021)
-===================
+0.0.1.1 (24-05-2021)
+====================
 
 - Add missing ``cache_directory`` default in ``resolver.Provider``
 
