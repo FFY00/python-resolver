@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import sys
 
 from typing import Any, Dict, Set
 
@@ -33,6 +34,14 @@ class VerboseReporter(resolvelib.BaseReporter):  # type: ignore
 
     def pinning(self, candidate: Any) -> None:
         print(f'  pinning({candidate})')
+
+
+def _error(msg: str, code: int = 1) -> None:  # pragma: no cover
+    prefix = 'ERROR'
+    if sys.stdout.isatty():
+        prefix = '\33[91m' + prefix + '\33[0m'
+    print('{} {}'.format(prefix, msg))
+    exit(code)
 
 
 def main_parser() -> argparse.ArgumentParser:
@@ -106,6 +115,8 @@ def main() -> None:
         task()
     except KeyboardInterrupt:
         print('Exiting...')
+    except Exception as e:
+        resolver.__main__._error(str(e))
 
 
 def entrypoint() -> None:

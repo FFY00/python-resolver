@@ -4,7 +4,6 @@ import argparse
 import os
 import os.path
 import pathlib
-import sys
 import tempfile
 import typing
 import zipfile
@@ -39,14 +38,6 @@ _MARKER_KEYS = (
     'os_name',
     'python_implementation',
 )
-
-
-def _error(msg: str, code: int = 1) -> None:  # pragma: no cover
-    prefix = 'ERROR'
-    if sys.stdout.isatty():
-        prefix = '\33[91m' + prefix + '\33[0m'
-    print('{} {}'.format(prefix, msg))
-    exit(code)
 
 
 def _project_requirements() -> Sequence[str]:
@@ -125,7 +116,7 @@ def task() -> None:  # noqa: C901
     if args.requirements:
         for bad_arg in _MARKER_KEYS + ('extras',):
             if bad_arg in args:
-                _error(f'Option --{bad_arg} not supported when specifying bare requirements')
+                resolver.__main__._error(f'Option --{bad_arg} not supported when specifying bare requirements')
 
     reporter = resolver.__main__.VerboseReporter if args.verbose else resolvelib.BaseReporter
     package_resolver = resolvelib.Resolver(
@@ -177,7 +168,7 @@ def main() -> None:
     except KeyboardInterrupt:
         print('Exiting...')
     except Exception as e:
-        _error(str(e))
+        resolver.__main__._error(str(e))
 
 
 def entrypoint() -> None:
