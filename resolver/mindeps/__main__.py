@@ -10,8 +10,8 @@ import zipfile
 
 from typing import Iterable, Sequence, Set
 
-import packaging
 import packaging.markers
+import packaging.requirements
 import resolvelib
 
 import resolver.__main__
