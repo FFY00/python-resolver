@@ -26,7 +26,7 @@ import resolvelib.structs
 import resolver.archive
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.1.1'
 
 
 class Candidate():
