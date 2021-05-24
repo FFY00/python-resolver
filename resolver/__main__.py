@@ -12,7 +12,7 @@ import resolvelib
 import resolver
 
 
-class VerboseReporter(resolvelib.BaseReporter):
+class VerboseReporter(resolvelib.BaseReporter):  # type: ignore
     def starting(self) -> None:
         print('starting()')
 

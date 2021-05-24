@@ -239,7 +239,7 @@ class Provider(resolvelib.AbstractProvider):  # type: ignore
 
             yield candidate
 
-    def _validated_candidates_iter(self, name, candidates: Iterable[Candidate]) -> Iterator[Candidate]:
+    def _validated_candidates_iter(self, name: DependencyKey, candidates: Iterable[Candidate]) -> Iterator[Candidate]:
         for candidate in candidates:
             if candidate.is_valid(self._supported_tags):
                 yield candidate

@@ -6,6 +6,7 @@ import os.path
 import pathlib
 import sys
 import tempfile
+import typing
 import zipfile
 
 from typing import Iterable, Sequence, Set
@@ -55,20 +56,24 @@ def _project_requirements() -> Sequence[str]:
     builder = build.ProjectBuilder('.', runner=pep517.wrappers.quiet_subprocess_runner)
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
-            path = pathlib.Path(builder.prepare('wheel', tmpdir))
+            path = pathlib.Path(builder.prepare('wheel', tmpdir))  # type: ignore  # TypeError should raise
         except TypeError:
             wheel = builder.build('wheel', tmpdir)
             match = resolver.archive._WHEEL_NAME_REGEX.match(os.path.basename(wheel))
             if not match:
                 raise ValueError('Invalid wheel')
-            path = zipfile.Path(wheel) / '{}-{}.dist-info'.format(
-                match['distribution'],
-                match['version'],
+            path = typing.cast(
+                pathlib.Path,
+                zipfile.Path(wheel) / '{}-{}.dist-info'.format(
+                    match['distribution'],
+                    match['version'],
+                ),
             )
 
-        requirements = importlib_metadata.PathDistribution(path).metadata.get_all('Requires-Dist', [])
+        requirements: Sequence[str] = importlib_metadata.PathDistribution(
+            path
+        ).metadata.get_all('Requires-Dist', [])
 
-    assert isinstance(requirements, list)
     return requirements
 
 
