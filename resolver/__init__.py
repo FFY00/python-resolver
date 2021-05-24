@@ -130,7 +130,7 @@ class DependencyKey(typing.NamedTuple):
 class Provider(resolvelib.AbstractProvider):  # type: ignore
     def __init__(
         self,
-        cache_directory: Optional[str],
+        cache_directory: Optional[str] = None,
         python_version: packaging.version.Version = packaging.version.Version(
             platform.python_version()
         ),
