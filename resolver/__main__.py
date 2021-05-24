@@ -115,6 +115,8 @@ def main() -> None:
         task()
     except KeyboardInterrupt:
         print('Exiting...')
+    except resolvelib.resolvers.ResolutionImpossible:
+        _error('No matches found')
     except Exception as e:
         _error(str(e))
 
