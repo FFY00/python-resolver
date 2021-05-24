@@ -11,6 +11,7 @@ A Python dependency resolver.
 #### Python library
 
 ```python
+import packaging.requirements
 import resolvelib
 import resolver
 
@@ -19,7 +20,9 @@ resolver = resolvelib.Resolver(
     resolver.Provider(),
     resolvelib.BaseReporter(),
 )
-resolver.resolve('trampolim==0.0.2')
+resolver.resolve({
+    packaging.requirements.Requirement('trampolim==0.0.2'),
+})
 ```
 
 #### Resolver CLI
