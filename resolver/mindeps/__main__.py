@@ -101,11 +101,12 @@ class MinimumDependencyProvider(resolver.Provider):
 
 
 def get_min_deps(
-    reporter: resolvelib.BaseReporter,
     requirements: List[str],
+    reporter: Optional[resolvelib.BaseReporter] = None,
     extras: Optional[Set[str]] = None,
     markers: Optional[Dict[str, str]] = None
 ) -> Dict[str, str]:
+    reporter = reporter or resolvelib.BaseReporter
     package_resolver = resolvelib.Resolver(
         MinimumDependencyProvider(
             '/tmp/resolver-cache' if os.name == 'posix' else None
@@ -117,7 +118,7 @@ def get_min_deps(
         packaging.requirements.Requirement, requirements
     )
 
-    extras = extras.copy() | {''}
+    extras = extras.copy() | {''} if extras else {''}
     if markers is not None and any(marker in _MARKER_KEYS for marker in markers):
         marker_env = {
             k: v for k, v in markers.items()
@@ -160,8 +161,8 @@ def task() -> None:  # noqa: C901
         print('\n--- Solution ---')
 
     pinned = get_min_deps(
+        args.requirements or _project_requirements(),
         reporter=reporter,
-        requirements=args.requirements or _project_requirements(),
         extras=set(vars(args).get('extras', {})),
         markers=vars(args)
     )
