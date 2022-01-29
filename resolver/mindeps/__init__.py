@@ -1,15 +1,5 @@
 # SPDX-License-Identifier: MIT
 
-import operator
+from resolver.mindeps.__main__ import entrypoint, get_min_deps  # noqa: F401
 
-from typing import Iterable, Sequence
-
-import resolver
-
-
-class MinimumDependencyProvider(resolver.Provider):
-    def sort_candidates(
-        self,
-        candidates: Iterable[resolver.Candidate],
-    ) -> Sequence[resolver.Candidate]:
-        return sorted(candidates, key=operator.attrgetter('version'), reverse=False)
+__all__ = ('entrypoint', 'get_min_deps')

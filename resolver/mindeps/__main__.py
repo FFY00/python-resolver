@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 import argparse
+import operator
 import os
 import os.path
 import pathlib
@@ -91,6 +92,14 @@ def main_parser() -> argparse.ArgumentParser:
     return parser
 
 
+class MinimumDependencyProvider(resolver.Provider):
+    def sort_candidates(
+        self,
+        candidates: Iterable[resolver.Candidate],
+    ) -> Sequence[resolver.Candidate]:
+        return sorted(candidates, key=operator.attrgetter('version'), reverse=False)
+
+
 def get_min_deps(
     reporter: resolvelib.BaseReporter,
     requirements: List[str],
@@ -98,7 +107,7 @@ def get_min_deps(
     markers: Optional[Dict[str, str]] = None
 ) -> Dict[str, str]:
     package_resolver = resolvelib.Resolver(
-        resolver.mindeps.MinimumDependencyProvider(
+        MinimumDependencyProvider(
             '/tmp/resolver-cache' if os.name == 'posix' else None
         ),
         reporter(),
