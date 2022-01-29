@@ -7,7 +7,7 @@ import os.path
 import pathlib
 import tempfile
 
-from typing import Iterable, Sequence, Set, List, Optional, Dict
+from typing import Dict, Iterable, List, Optional, Sequence, Set
 
 import packaging.markers
 import packaging.requirements
