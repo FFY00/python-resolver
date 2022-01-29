@@ -6,7 +6,7 @@ import os.path
 import pathlib
 import tempfile
 
-from typing import Iterable, Sequence, Set
+from typing import Iterable, Sequence, Set, List, Optional, Dict
 
 import packaging.markers
 import packaging.requirements
@@ -91,6 +91,51 @@ def main_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def get_min_deps(
+    reporter: resolvelib.BaseReporter,
+    requirements: List[str],
+    extras: Optional[Set[str]] = None,
+    markers: Optional[Dict[str, str]] = None
+) -> Dict[str, str]:
+    package_resolver = resolvelib.Resolver(
+        resolver.mindeps.MinimumDependencyProvider(
+            '/tmp/resolver-cache' if os.name == 'posix' else None
+        ),
+        reporter(),
+    )
+
+    requirements: Iterable[packaging.requirements.Requirement] = map(
+        packaging.requirements.Requirement, requirements
+    )
+
+    extras = extras.copy() | {''}
+    if markers is not None and any(marker in _MARKER_KEYS for marker in markers):
+        marker_env = {
+            k: v for k, v in markers.items()
+            if k in _MARKER_KEYS
+        }
+    else:
+        marker_env = packaging.markers.default_environment()
+
+    resolver_requirements: Set[packaging.requirements.Requirement] = set()
+    for requirement in list(requirements):
+        for extra in extras:
+            if not requirement.marker:
+                resolver_requirements.add(requirement)
+            elif requirement.marker.evaluate(marker_env | {'extra': extra}):
+                requirement.marker = None
+                resolver_requirements.add(requirement)
+
+    result = package_resolver.resolve(resolver_requirements)
+
+    pinned = {
+        candidate.name: candidate.version
+        for candidate in result.mapping.values()
+    }
+
+    return pinned
+
+
 def task() -> None:  # noqa: C901
     parser = main_parser()
     args = parser.parse_args()
@@ -101,45 +146,16 @@ def task() -> None:  # noqa: C901
                 resolver.__main__._error(f'Option --{bad_arg} not supported when specifying bare requirements')
 
     reporter = resolver.__main__.VerboseReporter if args.verbose else resolvelib.BaseReporter
-    package_resolver = resolvelib.Resolver(
-        resolver.mindeps.MinimumDependencyProvider(
-            '/tmp/resolver-cache' if os.name == 'posix' else None
-        ),
-        reporter(),
-    )
-
-    requirements: Iterable[packaging.requirements.Requirement] = map(
-        packaging.requirements.Requirement,
-        args.requirements or _project_requirements(),
-    )
-
-    extras = set(vars(args).get('extras', {})) | {''}
-    if any(arg in _MARKER_KEYS for arg in vars(args)):
-        marker_env = {
-            k: v for k, v in vars(args).items()
-            if k in _MARKER_KEYS
-        }
-    else:
-        marker_env = packaging.markers.default_environment()
-
-    resolver_requirements: Set[packaging.requirements.Requirement] = set()
-    for requirement in requirements:
-        for extra in extras:
-            if not requirement.marker:
-                resolver_requirements.add(requirement)
-            elif requirement.marker.evaluate(marker_env | {'extra': extra}):
-                requirement.marker = None
-                resolver_requirements.add(requirement)
-
-    result = package_resolver.resolve(resolver_requirements)
 
     if args.verbose:
         print('\n--- Solution ---')
 
-    pinned = {
-        candidate.name: candidate.version
-        for candidate in result.mapping.values()
-    }
+    pinned = get_min_deps(
+        reporter=reporter,
+        requirements=args.requirements or _project_requirements(),
+        extras=set(vars(args).get('extras', {})),
+        markers=vars(args)
+    )
     for name, version in pinned.items():
         print(f'{name}=={str(version)}')
 
